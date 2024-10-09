@@ -26,7 +26,7 @@ unet = UNet2DConditionModel.from_pretrained(sd15_name, subfolder="unet")
 rmbg = BriaRMBG.from_pretrained("briaai/RMBG-1.4")
 
 # Change UNet
-
+# 本来的输入通道是4通道 现在改成了8通道 用了零卷积 但前4个通道复制原来diffusion的unet2dconditional权重
 with torch.no_grad():
     new_conv_in = torch.nn.Conv2d(8, unet.conv_in.out_channels, unet.conv_in.kernel_size, unet.conv_in.stride, unet.conv_in.padding)
     new_conv_in.weight.zero_()
@@ -36,7 +36,7 @@ with torch.no_grad():
 
 unet_original_forward = unet.forward
 
-
+# 改变unet的输入 sample+条件
 def hooked_unet_forward(sample, timestep, encoder_hidden_states, **kwargs):
     c_concat = kwargs['cross_attention_kwargs']['concat_conds'].to(sample)
     c_concat = torch.cat([c_concat] * (sample.shape[0] // c_concat.shape[0]), dim=0)
