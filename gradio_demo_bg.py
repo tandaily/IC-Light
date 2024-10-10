@@ -26,7 +26,7 @@ unet = UNet2DConditionModel.from_pretrained(sd15_name, subfolder="unet")
 rmbg = BriaRMBG.from_pretrained("briaai/RMBG-1.4")
 
 # Change UNet
-
+# 12个通道:latent+前景+光照背景
 with torch.no_grad():
     new_conv_in = torch.nn.Conv2d(12, unet.conv_in.out_channels, unet.conv_in.kernel_size, unet.conv_in.stride, unet.conv_in.padding)
     new_conv_in.weight.zero_()
