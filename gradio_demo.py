@@ -267,6 +267,7 @@ def process(input_fg, prompt, image_width, image_height, num_samples, seed, step
     conds, unconds = encode_prompt_pair(positive_prompt=prompt + ', ' + a_prompt, negative_prompt=n_prompt)
 
     if input_bg is None:
+        # 文本生成光照背景
         latents = t2i_pipe(
             prompt_embeds=conds,
             negative_prompt_embeds=unconds,
@@ -280,6 +281,7 @@ def process(input_fg, prompt, image_width, image_height, num_samples, seed, step
             cross_attention_kwargs={'concat_conds': concat_conds},
         ).images.to(vae.dtype) / vae.config.scaling_factor
     else:
+        # 梯度图作为光照背景
         bg = resize_and_center_crop(input_bg, image_width, image_height)
         bg_latent = numpy2pytorch([bg]).to(device=vae.device, dtype=vae.dtype)
         bg_latent = vae.encode(bg_latent).latent_dist.mode() * vae.config.scaling_factor
