@@ -18,6 +18,7 @@ from torch.hub import download_url_to_file
 
 # 'stablediffusionapi/realistic-vision-v51'
 # 'runwayml/stable-diffusion-v1-5'
+# 加载stablediffusionapi/realistic-vision-v51权重
 sd15_name = 'stablediffusionapi/realistic-vision-v51'
 tokenizer = CLIPTokenizer.from_pretrained(sd15_name, subfolder="tokenizer")
 text_encoder = CLIPTextModel.from_pretrained(sd15_name, subfolder="text_encoder")
@@ -48,7 +49,7 @@ def hooked_unet_forward(sample, timestep, encoder_hidden_states, **kwargs):
 unet.forward = hooked_unet_forward
 
 # Load
-
+# 加载新unet的权重
 model_path = './models/iclight_sd15_fc.safetensors'
 
 if not os.path.exists(model_path):
