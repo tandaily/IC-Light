@@ -31,6 +31,8 @@ rmbg = BriaRMBG.from_pretrained("briaai/RMBG-1.4")
 with torch.no_grad():
     new_conv_in = torch.nn.Conv2d(8, unet.conv_in.out_channels, unet.conv_in.kernel_size, unet.conv_in.stride, unet.conv_in.padding)
     new_conv_in.weight.zero_()
+    # 前4个通道是输入的latent 也就是光照表示图
+    # 后4个通道是原始图像
     new_conv_in.weight[:, :4, :, :].copy_(unet.conv_in.weight)
     new_conv_in.bias = unet.conv_in.bias
     unet.conv_in = new_conv_in
@@ -287,6 +289,7 @@ def process(input_fg, prompt, image_width, image_height, num_samples, seed, step
         bg_latent = numpy2pytorch([bg]).to(device=vae.device, dtype=vae.dtype)
         bg_latent = vae.encode(bg_latent).latent_dist.mode() * vae.config.scaling_factor
         latents = i2i_pipe(
+            # 传入的居然是vae编码后的
             image=bg_latent,
             strength=lowres_denoise,
             prompt_embeds=conds,
@@ -298,6 +301,7 @@ def process(input_fg, prompt, image_width, image_height, num_samples, seed, step
             generator=rng,
             output_type='latent',
             guidance_scale=cfg,
+            # 前景图像 不过在修改过的unet里，会和image=bg_latent拼接起来
             cross_attention_kwargs={'concat_conds': concat_conds},
         ).images.to(vae.dtype) / vae.config.scaling_factor
 
