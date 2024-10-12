@@ -44,6 +44,8 @@ def hooked_unet_forward(sample, timestep, encoder_hidden_states, **kwargs):
     c_concat = kwargs['cross_attention_kwargs']['concat_conds'].to(sample)
     c_concat = torch.cat([c_concat] * (sample.shape[0] // c_concat.shape[0]), dim=0)
     new_sample = torch.cat([sample, c_concat], dim=1)
+    # 清空了cross_attention_kwargs参数
+    # 所以unet不会再通过交叉注意力引入concat_conds
     kwargs['cross_attention_kwargs'] = {}
     return unet_original_forward(new_sample, timestep, encoder_hidden_states, **kwargs)
 
@@ -51,7 +53,7 @@ def hooked_unet_forward(sample, timestep, encoder_hidden_states, **kwargs):
 unet.forward = hooked_unet_forward
 
 # Load
-# 加载新unet的权重
+# 加载新unet的权重，所以修改后的unet也没有零卷积了，已经有了新的权重
 model_path = './models/iclight_sd15_fc.safetensors'
 
 if not os.path.exists(model_path):
